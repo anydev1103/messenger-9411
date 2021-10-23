@@ -1,18 +1,40 @@
-const { Op } = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
 const db = require("../db");
+const Participant = require("./participant");
 
-const Conversation = db.define("conversation", {});
+const Conversation = db.define("conversation", {
+  isGroup: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+});
 
 // find conversation given two user Ids
 Conversation.findConversation = async function (user1Id, user2Id) {
   const conversation = await Conversation.findOne({
     where: {
-      user1Id: {
-        [Op.or]: [user1Id, user2Id],
+      isGroup: false,
+    },
+    include: {
+      model: Participant,
+      attributes: [],
+      where: {
+        userId: {
+          [Op.eq]: [user1Id],
+        },
       },
-      user2Id: {
-        [Op.or]: [user1Id, user2Id],
+      required: true,
+    },
+    include: {
+      model: Participant,
+      attributes: [],
+      where: {
+        userId: {
+          [Op.eq]: [user2Id],
+        },
       },
+      required: true,
     },
   });
 
